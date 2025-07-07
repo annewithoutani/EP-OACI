@@ -101,7 +101,7 @@ int partition(float* vetor, int l, int h){
 }
 
 // Função para realizar o Quick Sort iterativo
-void quick_sort_iterative(float* vetor, int l, int h){
+void quick_sort_iterativo(float* vetor, int l, int h){
 	int stack[h - l + 1];
 	int top = -1; // Índice do topo da pilha
 
@@ -120,19 +120,19 @@ void quick_sort_iterative(float* vetor, int l, int h){
 		// Se houver elementos à esquerda do pivô, 
 		// empilha o índice do próximo elemento à esquerda
 		int t = p - 1;
-		if (t <= l) goto _quick_continue1;
+		if (t <= l) goto _quick_continua1;
 			stack[++top] = l;
 			stack[++top] = p - 1;
 
-		_quick_continue1:
+		_quick_continua1:
 		// Se houver elementos à direita do pivô,
 		// empilha o índice do próximo elemento à direita
 		t = p + 1;
-		if (t >= h) goto _quick_continue2;
+		if (t >= h) goto _quick_continua2;
 			stack[++top] = p + 1;
 			stack[++top] = h;
 		
-		_quick_continue2:
+		_quick_continua2:
 		// Continua o loop enquanto houver elementos na pilha
 		if (top >= 0) goto _quick_loop;
 }
@@ -141,7 +141,7 @@ void quick_sort_iterative(float* vetor, int l, int h){
 void quick_sort(int tam, float* vetor){
 	// Tudo que é necessário é chamar a função iterativa
 	// com os índices iniciais e finais do vetor.
-	quick_sort_iterative(vetor, 0, tam - 1);
+	quick_sort_iterativo(vetor, 0, tam - 1);
 }
 
 void main() {
