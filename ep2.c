@@ -1,86 +1,159 @@
-/*──────────────────────────────────────────╖╓──────────────────────────────*/
-/* 				Requisito 1					║║			Requisito 2			*/
-/*──────────────────────────────────────────╢╟──────────────────────────────*/
-/*	*float ordena(int tam, int tipo,		║║	Os dados devem ser			*/
-/* 	float *vetor), onde:					║║	lidos de um arquivo,		*/
-/* 											║║	o qual será passado			*/
-/* 	· ordena: Nome da função;				║║	como entrada para			*/
-/* 	· int tam: Tamanho do vetor a ser		║║	o programa.					*/
-/*	ordenado;								║║								*/
-/*	· int tipo: Especifica qual método		║║	O vetor ordenado			*/
-/* 	será utilizado;							║║	de forma crescente			*/
-/*	· float *vetor: Vetor com os valores	║║	deve ser escrito			*/
-/*	a serem ordenados;						║║	no final do arquivo.		*/
-/*	· retorno (*float): Retorna um			║║								*/
-/*	ponteiro para o vetor ordenado.			║║								*/
-/*──────────────────────────────────────────╜╙──────────────────────────────*/
-
 #include <stdio.h>
 #include <stdlib.h>
 
-float* insertionSort(int tam, float* vetor) {
-	for(int i=1; i<tam; i++) {			 //Começa em 1 porque se considerar só o primeiro número, já está ordenado
-		float selecionado = vetor[i];
-		for(int j=i-1; j>=0; j--) {		 //Passa de trás pra frente até o começo do vetor 
-			if(selecionado < vetor[j]) {
-				vetor[j+1] = vetor[j];
-				vetor[j] = selecionado;
-			}
-		}
-/*
-	Prints que coloquei pra testar se cada iteração está certa
-		printf("\nIteracao %i:\n", i);
-		for(int j=0; j<tam; j++) {
-			printf("%.2f  ", vetor[j]);
-		}
-*/
+void insertion_sort(int tam, float* vetor);
+void quick_sort(int tam, float* vetor);
+
+float to_float(){
+
+}
+
+char* to_string(){
+	
+}
+
+/* INSERE VALORES DESORDENADOS NO VETOR */
+void bagunca_vetor(float* vetor){
+	float* valores = (float []){
+		11.0f, 16.0f, 18.0f, 19.0f, 15.0f, 2.0f, 5.0f, 7.0f, 10.0f, 17.0f,
+		9.0f, 4.0f, 13.0f, 12.0f, 3.0f, 1.0f, 14.0f, 8.0f, 6.0f, 20.0f
+	};
+	for(int i = 0; i < 20; i++) {
+		vetor[i] = valores[i];
 	}
 }
-float* quickSort(int tam, float* vetor) {
-	//TODO
-	//Precisei mexer rapidinho no ep de coo
-}
-/* float* ordena(int tam, int tipo, float* vetor) {
-	if(tipo == 0)
-		return insertionSort(tam, vetor);
-	else if(tipo == 1)
-		return quickSort(tam, vetor);
-	else
-		return NULL;
-} */
 
-int main(){
-	float vetor[20] = {11.0, 16.0, 18.0, 19.0, 15.0, 2.0, 5.0, 7.0, 10.0, 17.0, 9.0, 4.0, 13.0, 12.0, 3.0, 1.0, 14.0, 8.0, 6.0, 20.0};
-	selectionSortComLabel(20, vetor);
-	return 0;
-}
-
-/* -------------------- CÓDIGOS COM LABEL (LEMBRANDO QUE NÃO RODOU) --------------------
-
-float* insertionSortComLabel(int tam, float* vetor) {
-	int j, i = 1;
-	loopi:
-		float selecionado = vetor[i];
-		loopj:
-			j = i-1;
-			if(selecionado >= vetor[j]) {
-				goto lugar_certo;
-			}
-			vetor[j+1] = vetor[j];
-			vetor[j] = selecionado;
-			lugar_certo:
-				j--;
-				if(j>=0) {
-					goto loopj;
-				}
-		printf("\nIteração %i:\n", i);
-		for(int k=0; k<tam; k++) {
-			printf("%.2f  ", vetor[k]);
-		}
+/* FUNÇÃO QUE IMPRIME O VALOR */
+void print_list(int tam, float* vetor){
+	int i = 0;
+	_print_loop:
+		printf("%f\n", vetor[i]); // Imprime o elemento atual do vetor.
 		i++;
-		if(i<tam) {
-			goto loopi;
-		}
+		// Continua o loop até mostrar todos os elementos.
+		if(i < tam)	goto _print_loop;
 }
 
-*/
+/* FUNÇÃO "ORDENA" */
+
+void ordena(int tam, int tipo, float* vetor){
+	if (tipo == 0) insertion_sort(tam, vetor);
+	else quick_sort(tam, vetor);
+}
+
+/* INSERTION SORT */
+void insertion_sort(int tam, float* vetor) {
+	int i = 1; // Começa do segundo elemento, pois o primeiro já está "ordenado".
+	
+	_insertion_loopi: // Inicia o loop para percorrer o vetor.
+		float selecionado = vetor[i]; // O elemento a ser inserido.
+		int j = i-1; // Índice do último elemento ordenado.
+		
+		_insertion_loopj:
+			// Pula o deslocamento se 'selecionado' já é maior ou igual.
+			if(selecionado >= vetor[j]) goto _lugar_certo;
+
+			vetor[j+1] = vetor[j]; // Desloca elemento maior para a direita.
+			vetor[j] = selecionado; // Move 'selecionado' para a esquerda junto com o deslocamento.
+			
+			_lugar_certo:
+				j--;
+				// Verifica se ainda há elementos a comparar.
+				if(j>=0) goto _insertion_loopj; // Continua o loop interno.
+
+		i++;
+
+		// Próximo elemento a ser inserido.
+		if(i<tam) goto _insertion_loopi;
+}
+
+/* QUICK SORT */
+// Função auxiliar para trocar dois elementos
+void swap(float* a, float* b){
+	float t = *a;
+	*a = *b;
+	*b = t;
+}
+
+// Função para particionar o vetor
+// Retorna o índice do pivô após a partição
+int partition(float* vetor, int l, int h){
+	float x = vetor[h]; // Pivô é o último elemento
+	int i = l - 1; // Índice do menor elemento
+	int j = l; // Índice do menor elemento
+
+	// Percorre o vetor do índice l até h-1
+	// e coloca os elementos menores ou iguais ao pivô à esquerda
+	_partition_loop:
+		if (j > h - 1) goto _final;
+
+		if (vetor[j] > x) goto _partition_ignora;
+			i++;
+			swap(&(vetor[i]), &(vetor[j]));
+		
+		_partition_ignora:
+			j++;
+			goto _partition_loop;
+
+	_final:
+	// Coloca o pivô na posição correta
+	swap(&vetor[i + 1], &vetor[h]);
+	return (i + 1);
+}
+
+// Função para realizar o Quick Sort iterativo
+void quick_sort_iterative(float* vetor, int l, int h){
+	int stack[h - l + 1];
+	int top = -1; // Índice do topo da pilha
+
+	stack[++top] = l; // Empilha o índice inicial
+	stack[++top] = h; // Empilha o índice final
+
+	_quick_loop: // Enquanto houver elementos na pilha
+
+		// Desempilha os índices
+		h = stack[top--];
+		l = stack[top--];
+
+		// Realiza a partição e obtém o índice do pivô
+		int p = partition(vetor, l, h);
+
+		// Se houver elementos à esquerda do pivô, 
+		// empilha o índice do próximo elemento à esquerda
+		int t = p - 1;
+		if (t <= l) goto _quick_continue1;
+			stack[++top] = l;
+			stack[++top] = p - 1;
+
+		_quick_continue1:
+		// Se houver elementos à direita do pivô,
+		// empilha o índice do próximo elemento à direita
+		t = p + 1;
+		if (t >= h) goto _quick_continue2;
+			stack[++top] = p + 1;
+			stack[++top] = h;
+		
+		_quick_continue2:
+		// Continua o loop enquanto houver elementos na pilha
+		if (top >= 0) goto _quick_loop;
+}
+
+// Função para chamar o Quick Sort
+void quick_sort(int tam, float* vetor){
+	// Tudo que é necessário é chamar a função iterativa
+	// com os índices iniciais e finais do vetor.
+	quick_sort_iterative(vetor, 0, tam - 1);
+}
+
+void main() {
+	float* vetor = (float*) malloc (20 * sizeof(float));
+	bagunca_vetor(vetor);
+	ordena(20, 0, vetor);
+	printf("Vetor ordenado por Insertion Sort:\n");
+	print_list(20, vetor);
+	printf("\n");
+	bagunca_vetor(vetor);
+	ordena(20, 1, vetor);
+	printf("Vetor ordenado por Quick Sort:\n");
+	print_list(20, vetor);
+	free(vetor); // Libera a memória alocada para o vetor
+}
