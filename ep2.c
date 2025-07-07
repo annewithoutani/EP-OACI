@@ -166,13 +166,13 @@ void print_list(int tam, float* vetor){
 
 /* FUNÇÃO "ORDENA" */
 
-void ordena(int tam, int tipo, float* vetor){
-	if(tipo == 0) insertion_sort(tam, vetor);
-	else quick_sort(tam, vetor);
+float* ordena(int tam, int tipo, float* vetor){
+	if (tipo == 0) return insertion_sort(tam, vetor);
+	else return quick_sort(tam, vetor);
 }
 
 /* INSERTION SORT */
-void insertion_sort(int tam, float* vetor) {
+float* insertion_sort(int tam, float* vetor) {
 	int i = 1; // Começa do segundo elemento, pois o primeiro já está "ordenado".
 	
 	_insertion_loopi: // Inicia o loop para percorrer o vetor.
@@ -195,6 +195,7 @@ void insertion_sort(int tam, float* vetor) {
 
 		// Próximo elemento a ser inserido.
 		if(i<tam) goto _insertion_loopi;
+	return vetor;
 }
 
 /* QUICK SORT */
@@ -232,7 +233,7 @@ int partition(float* vetor, int l, int h){
 }
 
 // Função para realizar o Quick Sort iterativo
-void quick_sort_iterativo(float* vetor, int l, int h){
+float* quick_sort_iterative(float* vetor, int l, int h){
 	int stack[h - l + 1];
 	int top = -1; // Índice do topo da pilha
 
@@ -265,14 +266,16 @@ void quick_sort_iterativo(float* vetor, int l, int h){
 		
 		_quick_continua2:
 		// Continua o loop enquanto houver elementos na pilha
-		if(top >= 0) goto _quick_loop;
+		if (top >= 0) goto _quick_loop;
+
+	return vetor;
 }
 
 // Função para chamar o Quick Sort
-void quick_sort(int tam, float* vetor){
+float* quick_sort(int tam, float* vetor){
 	// Tudo que é necessário é chamar a função iterativa
 	// com os índices iniciais e finais do vetor.
-	quick_sort_iterativo(vetor, 0, tam - 1);
+	return quick_sort_iterative(vetor, 0, tam - 1);
 }
 
 void main() {
