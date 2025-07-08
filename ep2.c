@@ -2,42 +2,54 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-void insertion_sort(int tam, float* vetor);
-void quick_sort(int tam, float* vetor);
+float* insertion_sort(int tam, float* vetor);
+float* quick_sort(int tam, float* vetor);
 
+// VERSÃO CORRIGIDA PARA CONTAR TODAS AS LINHAS
 int descobre_tamanho(char* nomeDoArquivo){
 	FILE *arq;
-	char c;
 	int tam = 0;
-	char string[20];
+	char string_buffer[100]; // Buffer para ler cada linha
 
-	if(!(arq = fopen(nomeDoArquivo, "r"))){
-		printf("Nao foi possivel ler");
-		exit(1);
-	}
+	if(!(arq = fopen(nomeDoArquivo, "r"))) goto nao_leu;
 
-	while(fgets(string, 20, arq) != NULL){
+	// Inicia o laço para contar as linhas
+	_loop_conta_linhas:
+		// Se fgets retornar NULL, o arquivo acabou.
+		if(fgets(string_buffer, 100, arq) == NULL) goto _fim_contagem;
+		
+		// Se leu uma linha com sucesso, incrementa o tamanho.
 		tam++;
-	}
+		goto _loop_conta_linhas;
 
-	fclose(arq);
-	return tam;
+	_fim_contagem:
+		fclose(arq);
+		return tam;
+
+	nao_leu:
+		printf("Nao foi possivel ler o arquivo para descobrir o tamanho.\n");
+		exit(1);
 }
 
 char** le_linhas(int tam, char* nomeDoArquivo){
 	FILE *arq;
-	char c;
 	char** linhas = (char**) malloc (tam * sizeof (char*));
 	
-	if(!(arq = fopen(nomeDoArquivo, "r"))){
+	if ((arq = fopen(nomeDoArquivo, "r"))) goto _arquivo_aberto_ok;
 		printf("Nao foi possivel ler");
 		exit(1);
-	}
 
-	for(int i = 0; i < tam; i++){
+	_arquivo_aberto_ok:
+	int i = 0;
+	_loop_le_linhas:
+		if (i >= tam) goto _loop_le_linhas_fim;
+
 		linhas[i] = (char*) malloc (20 * sizeof (char));
 		fgets(linhas[i], 20, arq);
-	}
+	
+		i++;
+		goto _loop_le_linhas;
+	_loop_le_linhas_fim:
 
 	fclose(arq);
 	return linhas;
@@ -46,11 +58,11 @@ char** le_linhas(int tam, char* nomeDoArquivo){
 void escreve_no_final(char* nomeDoArquivo, char* texto){
 	FILE *arq;
 
-	if(!(arq = fopen(nomeDoArquivo, "a"))){
+	if((arq = fopen(nomeDoArquivo, "a"))) goto _escreve_aberto_ok;
 		printf("Nao foi possivel adicionar");
 		exit(1);
-	}
 	
+	_escreve_aberto_ok:
 	fprintf(arq, "%s", texto);
 	fclose(arq);
 }
@@ -61,86 +73,99 @@ float para_float(char* string){
     float valor = 0.0f;
     float fator_fracionario = 1.0f;
 
-	if(string == NULL) {
+	if(string != NULL) goto _string_nao_nula;
         return 0.0f;
-    }
+    _string_nao_nula:
 
-    if(*string == '-') {
+    if(*string != '-') goto _nao_negativo;
         negativo = true;
-        *string++;
-    }
+        string++;
+    _nao_negativo:
 
-    while(*string != '\0') {
-    	if(*string == '.' && !fracionario) {
+    _loop_para_float:
+    	if(*string == '\0' || *string == '\n' || *string == '\r') goto _loop_para_float_fim;
+    
+    	if(!(*string == '.' && !fracionario)) goto _nao_eh_ponto_decimal;
             fracionario = true;
-        }
+            goto _pular_logica_digito; 
+        _nao_eh_ponto_decimal:
 
-        if(*string >= '0' && *string <= '9') {
+        if(!(*string >= '0' && *string <= '9')) goto _pular_logica_digito;
             int digito = *string - '0';
-            if(fracionario) {
+            
+			if(fracionario) goto _parte_fracionaria;
+                valor = valor * 10.0f + digito;
+				goto _fim_logica_digito;
+			_parte_fracionaria:
                 fator_fracionario /= 10.0f;
                 valor += digito * fator_fracionario;
-            } else {
-                valor = valor * 10.0f + digito;
-            }
-        }
+			_fim_logica_digito:
 
-        *string++;
-    }
+		_pular_logica_digito:
+        string++;
+		goto _loop_para_float;
+	_loop_para_float_fim:
 
-    if(negativo) {
+    if(!negativo) goto _fim_para_float;
         valor = -valor;
-    }
+    _fim_para_float:
 
     return valor;
 }
 
 void inverter_substring(char* string, int inicio, int fim) {
-    while (inicio < fim) {
-        char temp = string[inicio];
+    _loop_inverter:
+		if(inicio >= fim) goto _loop_inverter_fim;
 
+        char temp = string[inicio];
         string[inicio] = string[fim];
         string[fim] = temp;
         
         inicio++;
         fim--;
-    }
+		goto _loop_inverter;
+	_loop_inverter_fim:;
 }
 
 char* para_string(float num) {
     char* string = (char*)malloc(20 * sizeof(char));
-    int i = 0; // Índice para a posição na string
-
-    if (num < 0) {
+    int i = 0; 
+    
+    if (num >= 0) goto _num_nao_negativo;
         string[i++] = '-';
         num = -num;
-    }
+	_num_nao_negativo:
 
-    int inteiro = (int)num;
-    int inicio = i; // Marca onde os dígitos do inteiro começam
+    long int inteiro = (long int)num;
+    int inicio_inteiro = i;
 
-    if (inteiro == 0) {
+    if (inteiro != 0) goto _inteiro_nao_zero;
         string[i++] = '0';
-    } else {
-        // Extrai os dígitos de trás para frente
-        while (inteiro > 0) {
+		goto _fim_logica_inteiro;
+	_inteiro_nao_zero:
+		_loop_extrai_inteiro:
+			if(inteiro <= 0) goto _loop_extrai_inteiro_fim;
             string[i++] = (inteiro % 10) + '0';
             inteiro /= 10;
-        }
-        // Inverte a parte que acabamos de escrever
-        inverter_substring(string, inicio, i - 1);
-    }
+			goto _loop_extrai_inteiro;
+		_loop_extrai_inteiro_fim:
+        inverter_substring(string, inicio_inteiro, i - 1);
+	_fim_logica_inteiro:
 
     string[i++] = '.';
 
-    float decimal = num - (int)num;
-    // Precisão de 5 casas decimais
-    for (int p = 0; p < 5; p++) {
+    float decimal = num - (long int)num;
+    
+	int p = 0;
+	_loop_decimal:
+		if(p >= 5) goto _loop_decimal_fim;
         decimal *= 10;
         int digito = (int)decimal;
         string[i++] = digito + '0';
         decimal -= digito;
-    }
+		p++;
+		goto _loop_decimal;
+	_loop_decimal_fim:
     
     string[i] = '\0';
 
@@ -149,74 +174,76 @@ char* para_string(float num) {
 
 /* INSERE VALORES DESORDENADOS NO VETOR */
 void preenche_vetor(int tam, char** linhas, float* vetor){
-	for(int i = 0; i < tam; i++){
+	int i = 0;
+	_preenche_loop:
+		if (i >= tam) goto _preenche_loop_fim;
 		vetor[i] = para_float(linhas[i]);
-	}
+		i++;
+		goto _preenche_loop;
+	_preenche_loop_fim:;
 }
 
 /* FUNÇÃO QUE IMPRIME O VALOR */
 void print_list(int tam, float* vetor){
 	int i = 0;
 	_print_loop:
+        if (i >= tam) return;
 		printf("%f\n", vetor[i]); // Imprime o elemento atual do vetor.
 		i++;
 		// Continua o loop até mostrar todos os elementos.
-		if(i < tam)	goto _print_loop;
+		goto _print_loop;
 }
 
 /* FUNÇÃO "ORDENA" */
-
 float* ordena(int tam, int tipo, float* vetor){
-	if (tipo == 0) return insertion_sort(tam, vetor);
-	else return quick_sort(tam, vetor);
+	if (tam <= 1) return vetor; // Não precisa ordenar vetores de 0 ou 1 elemento
+	// Verifica o tipo de ordenação.
+	if (tipo == 0) goto _use_insertion;
+	return quick_sort(tam, vetor); // Se não for 0, usa Quick Sort.
+	_use_insertion:
+	return insertion_sort(tam, vetor); // Se for 0, usa Insertion Sort.
 }
 
 /* INSERTION SORT */
 float* insertion_sort(int tam, float* vetor) {
 	int i = 1; // Começa do segundo elemento, pois o primeiro já está "ordenado".
 	
-	_insertion_loopi: // Inicia o loop para percorrer o vetor.
+	_insertion_loopi:
+		if (i >= tam) goto _insertion_fim;
 		float selecionado = vetor[i]; // O elemento a ser inserido.
-		int j = i-1; // Índice do último elemento ordenado.
+		int j = i - 1; // Índice do último elemento ordenado.
 		
 		_insertion_loopj:
-			// Pula o deslocamento se 'selecionado' já é maior ou igual.
-			if(selecionado >= vetor[j]) goto _lugar_certo;
+			if (j < 0) goto _fim_loopj;
+			if(selecionado >= vetor[j]) goto _fim_loopj;
 
 			vetor[j+1] = vetor[j]; // Desloca elemento maior para a direita.
-			vetor[j] = selecionado; // Move 'selecionado' para a esquerda junto com o deslocamento.
-			
-			_lugar_certo:
-				j--;
-				// Verifica se ainda há elementos a comparar.
-				if(j>=0) goto _insertion_loopj; // Continua o loop interno.
+			j--;
+			goto _insertion_loopj;
+
+		_fim_loopj:
+			vetor[j+1] = selecionado;
 
 		i++;
-
-		// Próximo elemento a ser inserido.
-		if(i<tam) goto _insertion_loopi;
+		goto _insertion_loopi;
+	_insertion_fim:
 	return vetor;
 }
 
 /* QUICK SORT */
-// Função auxiliar para trocar dois elementos
 void swap(float* a, float* b){
 	float t = *a;
 	*a = *b;
 	*b = t;
 }
 
-// Função para particionar o vetor
-// Retorna o índice do pivô após a partição
 int partition(float* vetor, int l, int h){
 	float x = vetor[h]; // Pivô é o último elemento
-	int i = l - 1; // Índice do menor elemento
-	int j = l; // Índice do menor elemento
+	int i = l - 1; 
+	int j = l; 
 
-	// Percorre o vetor do índice l até h-1
-	// e coloca os elementos menores ou iguais ao pivô à esquerda
 	_partition_loop:
-		if(j > h - 1) goto _final;
+		if(j >= h) goto _final;
 
 		if(vetor[j] > x) goto _partition_ignora;
 			i++;
@@ -227,26 +254,24 @@ int partition(float* vetor, int l, int h){
 			goto _partition_loop;
 
 	_final:
-	// Coloca o pivô na posição correta
 	swap(&vetor[i + 1], &vetor[h]);
 	return (i + 1);
 }
 
-// Função para realizar o Quick Sort iterativo
 float* quick_sort_iterative(float* vetor, int l, int h){
+	if (l >= h) return vetor;
 	int stack[h - l + 1];
-	int top = -1; // Índice do topo da pilha
+	int top = -1; 
 
-	stack[++top] = l; // Empilha o índice inicial
-	stack[++top] = h; // Empilha o índice final
+	stack[++top] = l;
+	stack[++top] = h;
 
-	_quick_loop: // Enquanto houver elementos na pilha
+	_quick_loop: 
+		if (top < 0) goto _quick_fim;
 
-		// Desempilha os índices
 		h = stack[top--];
 		l = stack[top--];
 
-		// Realiza a partição e obtém o índice do pivô
 		int p = partition(vetor, l, h);
 
 		// Se houver elementos à esquerda do pivô, 
@@ -267,38 +292,62 @@ float* quick_sort_iterative(float* vetor, int l, int h){
 		_quick_continua2:
 		// Continua o loop enquanto houver elementos na pilha
 		if (top >= 0) goto _quick_loop;
+		
+		goto _quick_loop;
 
+	_quick_fim:
 	return vetor;
 }
 
-// Função para chamar o Quick Sort
 float* quick_sort(int tam, float* vetor){
-	// Tudo que é necessário é chamar a função iterativa
-	// com os índices iniciais e finais do vetor.
 	return quick_sort_iterative(vetor, 0, tam - 1);
 }
 
 void main() {
-	char* arq = "teste.txt";
-	int tam = descobre_tamanho(arq);
-	char** linhas = le_linhas(tam, arq);
+	goto main;
+	_arquivo_vazio:
+        printf("Arquivo vazio ou nao encontrado.\n");
+        return;
 
-	float* vetor = (float*) malloc (tam * sizeof (float));
-	preenche_vetor(tam, linhas, vetor);
-	ordena(tam, 0, vetor);
-	printf("Vetor ordenado por Insertion Sort:\n");
-	print_list(tam, vetor);
-	printf("\n");
+	main:
+		char* arq = "teste.txt";
+		int tam = descobre_tamanho(arq);
 
-	for(int i = 0; i < tam; i++){
-		escreve_no_final(arq, "\n");
-		escreve_no_final(arq, para_string(vetor[i]));
-	}
+	    if (tam == 0) goto _arquivo_vazio;
 
-	preenche_vetor(tam, linhas, vetor);
-	ordena(tam, 1, vetor);
-	printf("Vetor ordenado por Quick Sort:\n");
-	print_list(tam, vetor);
+		char** linhas = le_linhas(tam, arq);
+		float* vetor = (float*) malloc (tam * sizeof (float));
 
-	free(vetor); // Libera a memória alocada para o vetor
+		preenche_vetor(tam, linhas, vetor);
+		ordena(tam, 0, vetor);
+		printf("Vetor ordenado por Insertion Sort:\n");
+		print_list(tam, vetor);
+		printf("\n");
+
+		int i = 0;
+		_loop_main_escreve:
+			if(i >= tam) goto _loop_main_escreve_fim;
+			escreve_no_final(arq, "\n");
+			char* str_num = para_string(vetor[i]);
+			escreve_no_final(arq, str_num); // CORREÇÃO APLICADA AQUI
+			free(str_num); 
+			i++;
+			goto _loop_main_escreve;
+		_loop_main_escreve_fim:
+		
+		preenche_vetor(tam, linhas, vetor);
+		ordena(tam, 1, vetor);
+		printf("Vetor ordenado por Quick Sort:\n");
+		print_list(tam, vetor);
+
+	    i = 0;
+	    _loop_free_linhas:
+	        if (i >= tam) goto _loop_free_linhas_fim;
+	        free(linhas[i]);
+	        i++;
+	        goto _loop_free_linhas;
+	    _loop_free_linhas_fim:
+		free(linhas);
+
+		free(vetor);
 }
