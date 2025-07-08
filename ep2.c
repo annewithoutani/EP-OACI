@@ -5,7 +5,6 @@
 float* insertion_sort(int tam, float* vetor);
 float* quick_sort(int tam, float* vetor);
 
-// VERSÃO CORRIGIDA PARA CONTAR TODAS AS LINHAS
 int descobre_tamanho(char* nomeDoArquivo){
 	FILE *arq;
 	int tam = 0;
@@ -258,49 +257,17 @@ int partition(float* vetor, int l, int h){
 	return (i + 1);
 }
 
-float* quick_sort_iterative(float* vetor, int l, int h){
-	if (l >= h) return vetor;
-	int stack[h - l + 1];
-	int top = -1; 
-
-	stack[++top] = l;
-	stack[++top] = h;
-
-	_quick_loop: 
-		if (top < 0) goto _quick_fim;
-
-		h = stack[top--];
-		l = stack[top--];
-
-		int p = partition(vetor, l, h);
-
-		// Se houver elementos à esquerda do pivô, 
-		// empilha o índice do próximo elemento à esquerda
-		int t = p - 1;
-		if(t <= l) goto _quick_continua1;
-			stack[++top] = l;
-			stack[++top] = p - 1;
-
-		_quick_continua1:
-		// Se houver elementos à direita do pivô,
-		// empilha o índice do próximo elemento à direita
-		t = p + 1;
-		if(t >= h) goto _quick_continua2;
-			stack[++top] = p + 1;
-			stack[++top] = h;
-		
-		_quick_continua2:
-		// Continua o loop enquanto houver elementos na pilha
-		if (top >= 0) goto _quick_loop;
-		
-		goto _quick_loop;
-
-	_quick_fim:
-	return vetor;
+float* quick_sort_recursivo(float* vetor, int l, int h){
+    if (l >= h) goto _quick_fim;
+        int p = partition(vetor, l, h);
+        quick_sort_recursivo(vetor, l, p - 1); // Chamada para a esquerda
+        quick_sort_recursivo(vetor, p + 1, h); // Chamada para a direita
+    _quick_fim:
+    return vetor;
 }
 
 float* quick_sort(int tam, float* vetor){
-	return quick_sort_iterative(vetor, 0, tam - 1);
+	return quick_sort_recursivo(vetor, 0, tam - 1);
 }
 
 void main() {
